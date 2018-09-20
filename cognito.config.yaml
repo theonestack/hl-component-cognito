@@ -1,0 +1,93 @@
+###
+### For more information
+### https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html
+### https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolgroup.html
+### https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolclient.html
+###
+
+pool_name: cfhighlander_user_pool
+alias_attributes:
+  - email
+
+# Uncomment following line, if you want user pool
+# domain enabled for your cognito pool
+# resulting in domain https://${domain_name}.auth.${aws_region}.amazoncognito.com
+# domain_name: myscustomdomain
+
+default_client:
+  name: cfhighlander_user_pool_client
+  generate_secret: true
+  output_secret: true
+  callback_urls:
+    - http://localhost:3000
+  logout_urls:
+    - http://localhost:3000/log_out
+  default_redirect_uri: http://localhost:3000/
+  allowed_oauth_scopes:
+    - openid
+    - profile
+  refresh_token_validity: 30
+  allowed_oauth_flows_userpool_client: true
+  allowed_oauth_flows:
+    - client_credentials
+  explicit_auth_flows: []
+  skip_update: false
+  allow_cognito_idp: true
+
+default_user_group:
+  name: default_user_group
+  description: Update cfhighlander cognito component configuration to define user groups
+  precedence: 10
+
+user_schema:
+  email:
+    type: String   # can be String, Number, DateTime, or Boolean.
+    mutable: true  # defines whether user attribute value can be changed
+    required: true
+  name:
+    type: String
+    mutable: true
+    required: true
+
+### Apart from these 2 attributes, CognitoDefaults will be added, and they include
+### these attributes are also included in defaults, but in order to override mutable/required properties
+### they are also explicitly included here
+
+### Specifying any clients under clients key will render default_client unused
+clients:
+#  client1:
+#    name: my_client
+#    # check default_client for configuration values
+
+### Specifying any groups under groups key will render default_user_group unused
+groups:
+#  group1:
+#    name: usergroup
+#    description: This group gives access to X
+
+
+ccr:
+  custom_policies:
+    cognito:
+      action:
+        - cognito-idp:*
+  roles:
+    cognito:
+      policies_inline:
+        - cloudwatch-logs
+        - cognito
+  functions:
+    ccrCognitoUPC:
+      role: cognito
+      code: https://github.com/base2Services/cloudformation-custom-resources-nodejs/releases/download/1.0.0/ccr-nodejs-1.0.0.zip
+      runtime: nodejs6.10
+      named: false
+      timeout: 30
+      handler: cognito-user-pool-client/index.handler
+    ccrCognitoDN:
+      role: cognito
+      code: https://github.com/base2Services/cloudformation-custom-resources-nodejs/releases/download/1.0.0/ccr-nodejs-1.0.0.zip
+      runtime: nodejs6.10
+      named: false
+      timeout: 30
+      handler: cognito-user-pool-domain/index.handler

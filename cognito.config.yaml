@@ -80,14 +80,14 @@ ccr:
     ccrCognitoUPC:
       role: cognito
       code: https://github.com/base2Services/cloudformation-custom-resources-nodejs/releases/download/1.0.0/ccr-nodejs-1.0.0.zip
-      runtime: nodejs6.10
+      runtime: nodejs10.x
       named: false
       timeout: 30
       handler: cognito-user-pool-client/index.handler
     ccrCognitoDN:
       role: cognito
       code: https://github.com/base2Services/cloudformation-custom-resources-nodejs/releases/download/1.0.0/ccr-nodejs-1.0.0.zip
-      runtime: nodejs6.10
+      runtime: nodejs10.x
       named: false
       timeout: 30
       handler: cognito-user-pool-domain/index.handler

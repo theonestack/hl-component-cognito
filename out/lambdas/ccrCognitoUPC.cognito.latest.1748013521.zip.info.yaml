@@ -1,0 +1,11 @@
+---
+component: cognito
+function: ccrCognitoUPC
+packagedAt: '1748013521'
+config:
+  role: cognito
+  code: https://github.com/base2Services/cloudformation-custom-resources-nodejs/releases/download/1.0.0/ccr-nodejs-1.0.0.zip
+  runtime: nodejs14.x
+  named: false
+  timeout: 30
+  handler: cognito-user-pool-client/index.handler

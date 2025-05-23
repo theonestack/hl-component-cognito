@@ -3,28 +3,41 @@ test_metadata:
   name: default
   description: default cognito configuration test
 
-user_pool:
-  name: test-user-pool
-  auto_verify: true
-  mfa: true
-  password_policy:
-    minimum_length: 8
-    require_lowercase: true
-    require_numbers: true
-    require_symbols: true
-    require_uppercase: true
-  schema:
-    - name: email
-      required: true
-      mutable: true
-      string_constraints:
-        min_length: 0
-        max_length: 2048
+pool_name: test-user-pool
+alias_attributes:
+  - email
 
-identity_pool:
-  name: test-identity-pool
-  allow_unauthenticated: false
-  cognito_identity_providers:
-    - client_id: test-client
-      provider_name: test-provider
-      server_side_token_check: true
+user_schema:
+  email:
+    type: String
+    mutable: true
+    required: true
+  name:
+    type: String
+    mutable: true
+    required: true
+
+default_client:
+  name: test-client
+  generate_secret: true
+  output_secret: true
+  callback_urls:
+    - http://localhost:3000
+  logout_urls:
+    - http://localhost:3000/logout
+  default_redirect_uri: http://localhost:3000/
+  allowed_oauth_scopes:
+    - openid
+    - profile
+  refresh_token_validity: 30
+  allowed_oauth_flows_userpool_client: true
+  allowed_oauth_flows:
+    - client_credentials
+  explicit_auth_flows: []
+  skip_update: false
+  allow_cognito_idp: true
+
+default_user_group:
+  name: default_group
+  description: Default user group
+  precedence: 10

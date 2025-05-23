@@ -15,17 +15,7 @@ describe 'default cognito configuration' do
 
     it 'has basic properties' do
       expect(properties["UserPoolName"]).to eq({"Fn::Sub"=>"${EnvironmentName}-test-user-pool"})
-      expect(properties["AutoVerifiedAttributes"]).to include("email")
-      expect(properties["MfaConfiguration"]).to eq("ON")
-    end
-
-    it 'has password policy' do
-      policy = properties["Policies"]["PasswordPolicy"]
-      expect(policy["MinimumLength"]).to eq(8)
-      expect(policy["RequireLowercase"]).to be true
-      expect(policy["RequireNumbers"]).to be true
-      expect(policy["RequireSymbols"]).to be true
-      expect(policy["RequireUppercase"]).to be true
+      expect(properties["AliasAttributes"]).to include("email")
     end
 
     it 'has schema attributes' do
@@ -33,34 +23,49 @@ describe 'default cognito configuration' do
       expect(schema).to include(
         {
           "Name" => "email",
+          "AttributeDataType" => "String",
           "Required" => true,
-          "Mutable" => true,
-          "StringAttributeConstraints" => {
-            "MinLength" => "0",
-            "MaxLength" => "2048"
-          }
+          "Mutable" => true
+        }
+      )
+      expect(schema).to include(
+        {
+          "Name" => "name",
+          "AttributeDataType" => "String",
+          "Required" => true,
+          "Mutable" => true
         }
       )
     end
   end
 
-  context 'Resource IdentityPool' do
-    let(:properties) { template["Resources"]["IdentityPool"]["Properties"] }
+  context 'Resource UserPoolClient' do
+    let(:properties) { template["Resources"]["UserPoolClient"]["Properties"] }
 
     it 'has basic properties' do
-      expect(properties["IdentityPoolName"]).to eq({"Fn::Sub"=>"${EnvironmentName}-test-identity-pool"})
-      expect(properties["AllowUnauthenticatedIdentities"]).to be false
+      expect(properties["ClientName"]).to eq({"Fn::Sub"=>"${EnvironmentName}-test-client"})
+      expect(properties["GenerateSecret"]).to be true
+      expect(properties["UserPoolId"]).to eq({"Ref"=>"UserPool"})
     end
 
-    it 'has cognito identity providers' do
-      providers = properties["CognitoIdentityProviders"]
-      expect(providers).to include(
-        {
-          "ClientId" => "test-client",
-          "ProviderName" => "test-provider",
-          "ServerSideTokenCheck" => true
-        }
-      )
+    it 'has oauth configuration' do
+      expect(properties["AllowedOAuthScopes"]).to include("openid", "profile")
+      expect(properties["CallbackURLs"]).to include("http://localhost:3000")
+      expect(properties["LogoutURLs"]).to include("http://localhost:3000/logout")
+      expect(properties["DefaultRedirectURI"]).to eq("http://localhost:3000/")
+      expect(properties["AllowedOAuthFlows"]).to include("client_credentials")
+      expect(properties["AllowedOAuthFlowsUserPoolClient"]).to be true
+    end
+  end
+
+  context 'Resource UserGroup' do
+    let(:properties) { template["Resources"]["UserGroupDefault"]["Properties"] }
+
+    it 'has basic properties' do
+      expect(properties["GroupName"]).to eq("default_group")
+      expect(properties["Description"]).to eq("Default user group")
+      expect(properties["Precedence"]).to eq(10)
+      expect(properties["UserPoolId"]).to eq({"Ref"=>"UserPool"})
     end
   end
 
@@ -73,9 +78,9 @@ describe 'default cognito configuration' do
       )
     end
 
-    it 'has identity pool id' do
-      expect(outputs["IdentityPoolId"]).to include(
-        "Value" => {"Ref"=>"IdentityPool"}
+    it 'has user pool client id' do
+      expect(outputs["UserPoolClientId"]).to include(
+        "Value" => {"Ref"=>"UserPoolClient"}
       )
     end
   end
